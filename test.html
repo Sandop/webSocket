@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>聊天室</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        #err_msg {
+            color: brown;
+        }
+        .chat_box{
+            overflow: hidden;
+        }
+        #chat_ul {
+            width: 400px;
+            height: 300px;
+            border: 1px solid #ccc;
+        }
+        #chat_ul li.me {
+            color: aqua;
+        }
+    </style>
+    <script src="http://localhost:8080/socket.io/socket.io.js" charset="utf-8"></script>
+    
+</head>
+<body>
+    <div id="err_msg">无法连接到服务器，请检查网络！</div>
+    <div class="chat_box">
+        <ul id="chat_ul"></ul>
+        <textarea id="chat_cont" cols="60" rows="5"></textarea>
+        <input type="button" value="发送" id="send">
+    </div>
+    <script>
+        let sock = io.connect('ws://localhost:8080/');
+        let oErr = document.getElementById('err_msg');
+        sock.on('connect',()=>{
+            oErr.style.display = 'none';
+        })
+        sock.on('disconnect',()=>{
+            oErr.style.display = 'block';
+        })
+
+        window.onload = function (){
+            let oCont = document.getElementById('chat_cont');
+            let oUl = document.getElementById('chat_ul');
+            let oBtn = document.getElementById('send');
+
+            oBtn.onclick = function (){
+                sock.emit('msg',oCont.value);
+
+                let oLi = document.createElement('li');
+                oLi.className = 'me';
+                oLi.innerHTML = oCont.value;
+                oCont.value = '';
+                oUl.append(oLi);
+            }
+
+            sock.on('msg',str=>{
+                let oLi = document.createElement('li');
+                oLi.innerHTML = str;
+                oUl.appendChild(oLi);
+            })
+        }
+    </script>
+</body>
+</html>
